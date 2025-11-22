@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qabpassgen"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Adil Dyer", email="addressal.adil@gmail.com" },
 ]
 description = "Qiskit Aer based Random password generator"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9, <3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

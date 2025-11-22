@@ -1,5 +1,5 @@
 # Ignore the virtual environment (Crucial!)
-venvqabpassgen/
+forSimulator/
 
 # Ignore build artifacts (These are generated when you build)
 dist/
