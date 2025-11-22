@@ -1,0 +1,16 @@
+# Ignore the virtual environment (Crucial!)
+venvqabpassgen/
+
+# Ignore build artifacts (These are generated when you build)
+dist/
+build/
+*.egg-info/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore IDE settings (Optional but good practice)
+.vscode/
+.idea/
+.DS_Store
