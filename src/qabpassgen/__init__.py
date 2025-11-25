@@ -29,7 +29,7 @@ def _get_quantum_random_bits(n):
 
     except Exception as e:
         # Fallback to standard secure random if quantum simulation fails
-        # print(f"Quantum Simulation Error: {e}") # Optional: Uncomment for debugging
+        # print(f"Quantum Simulation Error: {e}") # Uncomment for debugging
         return bin(secrets.randbits(n))[2:].zfill(n)
 
 def generate_password(length=12, include_numbers=False, include_symbols=False):
@@ -48,8 +48,10 @@ def generate_password(length=12, include_numbers=False, include_symbols=False):
 
     # Build Character Set
     char_set = string.ascii_letters
+    # char_set = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     if include_numbers:
         char_set += string.digits
+        # char_set = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
     if include_symbols:
         char_set += string.punctuation
 
@@ -72,11 +74,13 @@ def generate_password(length=12, include_numbers=False, include_symbols=False):
             password += char_set[char_index]
             bit_index += 8
 
-    # Check Password Strength
+    # Check Password Strength using zxcvbn, a library developed at dropbox that estimates password strength against common patterns and attacks.
+
     analysis = zxcvbn(password)
 
     return {
         "password": password,
         "score": analysis['score'],
-        "feedback": analysis['feedback']['warning'] or "Looks good!"
+        "warning": analysis['feedback']['warning'],
+        "suggestions": analysis['feedback']['suggestions']
     }
