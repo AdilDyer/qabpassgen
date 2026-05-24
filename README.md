@@ -1,72 +1,154 @@
 QabPassGen 🔐⚛️
 ===============
 
-**Quantum-Simulation Backed Password Generator**
+**Quantum-Entropy Password Generator** — powered by real IBM Quantum hardware or local Aer simulation.
 
-qabpassgen is a Python library that generates strong, random passwords using quantum circuit simulation for entropy. It leverages **Qiskit Aer** to simulate quantum superposition (Hadamard gates) and measures the collapse of quantum states to generate random bits, seeded by your OS's cryptographically secure random source.
-
-It also includes built-in password strength estimation using zxcvbn.
+`qabpassgen` generates cryptographically strong passwords using true quantum randomness. It applies **Hadamard gates** to put qubits into superposition, measures their collapse, and converts the resulting bitstream into passwords via **rejection sampling** (eliminating modulo bias). Password strength is then verified by `zxcvbn`.
 
 📦 Installation
 ---------------
 
-Install easily via pip:
+```bash
+pip install qabpassgen
+```
 
-`pip install qabpassgen`
+> **Note:** Requires Python **>=3.9, <3.13**
 
-> **Note:** This library requires Python **\>=3.9** and **<3.13**.
+---
 
 🚀 Usage
 --------
 
-### Basic Generation
+### Minimal — Simulator (no token needed)
 
-Generate a standard 12-character password:
+```python
+import qabpassgen
 
-`import qabpassgen  result = qabpassgen.generate_password()`
+result = qabpassgen.generate_password()
+print(result['password'])
+# Example: "X7kPq2mNvLz!8Yw3A#m"
+```
 
-`print(f"Password: {result['password']}")  print(f"Strength Score: {result['score']}/4")  print(f"Feedback: {result['feedback']}")   `
+### With all options
 
-### Customizing Complexity
+```python
+import qabpassgen
 
-You can specify length, numbers, and symbols:
+result = qabpassgen.generate_password(
+    ibm_token="YOUR_IBM_QUANTUM_TOKEN",  # Optional: use real hardware
+    length=32,
+    use_symbols=True,
+    use_numbers=True
+)
+print(result['password'])
+```
 
-To Generate a complex 16-char password with numbers and symbols :
+### Pretty terminal report
 
-`import qabpassgen
- complex_pass = qabpassgen.generate_password(      length=16,      include_numbers=True,      include_symbols=True  )  print(complex_pass['password']) `
+```python
+import qabpassgen
 
-Output example: "K9$mP#v2!LqR5@xZ"
+result = qabpassgen.generate_password(length=24, use_symbols=True, use_numbers=True)
+qabpassgen.print_report(result)
+```
+
+```
+╔══════════════════════════════════════════════════════╗
+║              QUANTUM ENTROPY AUDIT                   ║
+╠══════════════════════════════════════════════════════╣
+║ PASS: X7#kPq@2mNvLz!8Yw3A#m                         ║
+║ RANK: 4/4 Security Score                             ║
+║ TIME: centuries                                      ║
+║ BITS: 87.3 Shannon Entropy                           ║
+╟──────────────────────────────────────────────────────╢
+║ FROM: Aer_Quantum_Sim                                ║
+║ UTIL: 96.1% Yield Efficiency                         ║
+║ LOAD: 0.312s                                         ║
+╚══════════════════════════════════════════════════════╝
+```
+
+---
+
+📖 API Reference
+----------------
+
+### `generate_password(...) → dict`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ibm_token` | `str` | `None` | IBM Quantum API token. Uses real hardware if provided; falls back to Aer simulator if omitted or if hardware is offline. |
+| `length` | `int` | `20` | Number of characters in the password. |
+| `use_symbols` | `bool` | `True` | Include symbols: `!@#$%^&*` |
+| `use_numbers` | `bool` | `True` | Include digits `0–9` |
+
+**Returns** a `dict`:
+
+```python
+{
+    "password": "X7#kPq@2mNvLz!8Yw3A#m",
+    "metrics": {
+        "strength": "4/4",          # zxcvbn score
+        "crack_time": "centuries",  # estimated offline crack time
+        "entropy": 87.3             # Shannon entropy in bits
+    },
+    "provenance": {
+        "source": "Aer_Quantum_Sim",  # or real IBM device name e.g. "ibm_kyiv"
+        "bits": 1920,                 # total quantum bits consumed
+        "yield": "96.1%",            # rejection sampling efficiency
+        "latency": "0.312s"          # total generation time
+    }
+}
+```
+
+### `print_report(result)`
+
+Renders a formatted terminal report. Pass the `dict` returned by `generate_password()`.
+
+```python
+qabpassgen.print_report(result)
+```
+
+---
 
 🧠 How It Works
 ---------------
 
-1.  **Quantum Entropy Simulation:** The library creates a Quantum Circuit with n qubits (where n is based on the requested password length).
+1. **Quantum Circuit:** Creates a circuit with Hadamard gates on all qubits → perfect 50/50 superposition.
+2. **Measurement:** Collapses qubits to classical bits → true quantum randomness.
+3. **Bitstream:** Raw measurements are packed into 8-bit integers (0–255).
+4. **Rejection Sampling:** Bytes outside the uniform range are discarded to eliminate modulo bias.
+5. **Hardware Fallback:** If a token is given but IBM hardware is unreachable, automatically uses the local Aer simulator.
+6. **Strength Check:** Result is validated with `zxcvbn`.
 
-2.  **Superposition:** It applies **Hadamard gates** to all qubits, putting them into a state of equal probability (superposition).
+---
 
-3.  **Measurement:** The qubits are measured, forcing them to collapse into classical bits (0 or 1).
+🔑 IBM Quantum Token
+--------------------
 
-4.  **Secure Seeding:** The simulator is seeded using Python's secrets module (OS-level cryptographically secure source) to ensure the simulation itself is unpredictable.
+To use real quantum hardware, get a free token at [quantum.ibm.com](https://quantum.ibm.com) and pass it as `ibm_token`. Without a token, the local Aer simulator is used automatically.
 
-5.  **Mapping:** The resulting random bits are converted into characters from your chosen character set.
+You can also set it via environment variable:
 
-6.  **Validation:** The final password is analyzed by zxcvbn to ensure it meets modern strength standards.
+```bash
+export IBM_QUANTUM_TOKEN="your_token_here"
+```
 
+```python
+import os, qabpassgen
+result = qabpassgen.generate_password(ibm_token=os.getenv("IBM_QUANTUM_TOKEN"))
+```
 
-_If quantum simulation fails (e.g., due to environment issues), the library gracefully falls back to standard cryptographically secure generation._
+---
 
 🛡️ Dependencies
 ----------------
 
-*   qiskit: For defining quantum circuits.
-
-*   qiskit-aer: For high-performance quantum simulation.
-
-*   zxcvbn: For realistic password strength estimation.
-
+- `qiskit` — quantum circuit definition
+- `qiskit-aer` — local quantum simulator
+- `qiskit-ibm-runtime` — real IBM Quantum hardware access
+- `zxcvbn` — password strength estimation
 
 📄 License
 ----------
 
-This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.

@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qabpassgen"
-version = "0.0.4"
+version = "0.1.0"
 authors = [
   { name="Adil Dyer", email="addressal.adil@gmail.com" },
 ]
-description = "Qiskit Aer based Random password generator"
+description = "Quantum password generator using IBM Quantum hardware or Aer simulator"
 readme = "README.md"
 requires-python = ">=3.9, <3.13"
 classifiers = [
@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
     "qiskit",
     "qiskit-aer",
+    "qiskit-ibm-runtime",
     "zxcvbn"
 ]
 
