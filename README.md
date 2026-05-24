@@ -12,7 +12,7 @@ QabPassGen 🔐⚛️
 pip install qabpassgen
 ```
 
-> **Note:** Requires Python **>=3.9, <3.13**
+> **Note:** Requires Python **>=3.9**
 
 ---
 
